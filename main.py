@@ -24,7 +24,7 @@ def fetch_lake_polygon_wkt(lake_name, country="Poland"):
     geom = gdf.geometry.iloc[0]
     return geom.wkt, geom
 
-lake_name = "Isąg"
+lake_name = "Tuchlin"
 dam_wkt, dam_nominal = fetch_lake_polygon_wkt(lake_name)
 
 # -----------------------------------
