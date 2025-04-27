@@ -1,0 +1,96 @@
+{
+    "request": {
+        "headers": {
+            "accept": "application/x-tar",
+            "content-type": "application/json"
+        },
+        "payload": {
+            "evalscript": "\n//VERSION=3\n\nfunction setup() {\n    return {\n        input: [{\n            bands: [\"B02\", \"B03\", \"B04\", \"B08\", \"dataMask\", \"CLM\"],\n            units: [\"REFLECTANCE\", \"REFLECTANCE\", \"REFLECTANCE\", \"REFLECTANCE\", \"DN\", \"DN\"]\n        }],\n        output: [{id: \"B02\", bands: 1, sampleType: \"FLOAT32\"}, {id: \"B03\", bands: 1, sampleType: \"FLOAT32\"}, {id: \"B04\", bands: 1, sampleType: \"FLOAT32\"}, {id: \"B08\", bands: 1, sampleType: \"FLOAT32\"}, {id: \"dataMask\", bands: 1, sampleType: \"UINT8\"}, {id: \"CLM\", bands: 1, sampleType: \"UINT8\"}]\n    }\n}\n\nfunction updateOutputMetadata(scenes, inputMetadata, outputMetadata) {\n    outputMetadata.userData = {\n        \"norm_factor\":  inputMetadata.normalizationFactor\n    }\n}\n\nfunction evaluatePixel(sample) {\n    return { B02: [sample.B02], B03: [sample.B03], B04: [sample.B04], B08: [sample.B08], dataMask: [sample.dataMask], CLM: [sample.CLM] };\n}\n",
+            "input": {
+                "bounds": {
+                    "bbox": [
+                        12.3285353,
+                        47.81860579,
+                        12.5528777,
+                        47.94361231
+                    ],
+                    "properties": {
+                        "crs": "http://www.opengis.net/def/crs/EPSG/0/4326"
+                    }
+                },
+                "data": [
+                    {
+                        "dataFilter": {
+                            "maxCloudCoverage": 50,
+                            "timeRange": {
+                                "from": "2023-07-07T10:17:43Z",
+                                "to": "2023-07-07T10:17:45Z"
+                            }
+                        },
+                        "type": "sentinel-2-l1c"
+                    }
+                ]
+            },
+            "output": {
+                "height": 445,
+                "responses": [
+                    {
+                        "format": {
+                            "type": "image/tiff"
+                        },
+                        "identifier": "B02"
+                    },
+                    {
+                        "format": {
+                            "type": "image/tiff"
+                        },
+                        "identifier": "B03"
+                    },
+                    {
+                        "format": {
+                            "type": "image/tiff"
+                        },
+                        "identifier": "B04"
+                    },
+                    {
+                        "format": {
+                            "type": "image/tiff"
+                        },
+                        "identifier": "B08"
+                    },
+                    {
+                        "format": {
+                            "type": "image/tiff"
+                        },
+                        "identifier": "dataMask"
+                    },
+                    {
+                        "format": {
+                            "type": "image/tiff"
+                        },
+                        "identifier": "CLM"
+                    }
+                ],
+                "width": 574
+            }
+        },
+        "timestamp": "2025-04-27T13:40:39.655117",
+        "url": "https://services.sentinel-hub.com/api/v1/process"
+    },
+    "response": {
+        "elapsed": 1.175586,
+        "headers": {
+            "Connection": "keep-alive",
+            "Content-Type": "application/x-tar",
+            "Date": "Sun, 27 Apr 2025 11:40:36 GMT",
+            "Transfer-Encoding": "chunked",
+            "access-control-allow-credentials": "true",
+            "access-control-allow-headers": "origin,content-type,accept,accept-crs,authorization,cache-control",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
+            "access-control-allow-origin": "*",
+            "access-control-max-age": "3600",
+            "x-processingunits-spent": "3.2479603310912353"
+        },
+        "status_code": 200
+    }
+}
