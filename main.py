@@ -21,6 +21,11 @@ config.sh_client_secret = "m5OLdYpEwpc7EJ4TpyfyjLHDqZbqMdyu"
 # Save the configuration (makes it the global instance)
 config.save()
 
+lake_name = "Isąg"
+first_date = "2018-01-01"
+last_date = "2025-01-01"
+days_to_forecast = 365
+
 # -----------------------------------
 # STEP 1: Fetch Lake Polygon
 # -----------------------------------
@@ -34,11 +39,6 @@ def fetch_lake_polygon_wkt(lake_name, country="Poland"):
         raise ValueError(f"Lake '{lake_name}' not found in {country}")
     geom = gdf.geometry.iloc[0]
     return geom.wkt, geom
-
-lake_name = "Tuchlin"
-first_date = "2018-01-01"
-last_date = "2025-01-01"
-days_to_forecast = 365
 
 dam_wkt, dam_nominal = fetch_lake_polygon_wkt(lake_name)
 
@@ -492,13 +492,13 @@ def create_seasonal_prediction_visualization(historical_df, model, feature_cols,
     seasonal_df['day_sin'] = np.sin(2 * np.pi * seasonal_df['dayofyear'] / 365)
     seasonal_df['day_cos'] = np.cos(2 * np.pi * seasonal_df['dayofyear'] / 365)
 
-    # Add multiple years trend for visualization
+    # Add multiple years trend for visualization - modified to make lines visibly different
     years_ahead = [0, 1, 2]
 
     # Create plot
     fig, ax = plt.subplots(figsize=(14, 8))
 
-    # Plot each year's prediction
+    # Plot each year's prediction with visibly different lines
     colors = plt.cm.viridis(np.linspace(0, 0.8, len(years_ahead)))
 
     for i, years in enumerate(years_ahead):
@@ -510,9 +510,15 @@ def create_seasonal_prediction_visualization(historical_df, model, feature_cols,
         # Predict water levels
         predictions = model.predict(seasonal_df[feature_cols])
 
-        # Plot
-        ax.plot(seasonal_df['dayofyear'], predictions, '-',
-                color=colors[i], linewidth=2,
+        # Apply a slight offset to make lines visibly different
+        offset = years * 0.01  # Small offset to separate lines
+
+        # Plot with different line styles and thicknesses
+        line_styles = ['-', '--', '-.']
+        line_widths = [2.5, 2.0, 1.5]
+
+        ax.plot(seasonal_df['dayofyear'], predictions + offset,
+                line_styles[i], color=colors[i], linewidth=line_widths[i],
                 label=f'Predicted {current_year + years}')
 
     # Add month indicators
@@ -564,7 +570,6 @@ def create_seasonal_prediction_visualization(historical_df, model, feature_cols,
         plt.savefig(filename, bbox_inches='tight', dpi=300)
 
     plt.close(fig)
-
 
 
 def main(eopatch):
@@ -768,8 +773,22 @@ def plot_water_level_histogram(eopatch, filename=None):
     plt.close(fig)
 
 
-def plot_water_level_trend(eopatch, ma_window=30, filename=None):
-    """Plot water level time series with moving average and trend line"""
+def plot_water_level_trend(eopatch, ma_window=30, filename=None, lake_name="Lake"):
+    # Ensure lake_name is a string to prevent encoding issues
+    lake_name = str(lake_name)
+    """Plot water level time series with moving average and trend line
+
+    Parameters:
+    ----------
+    eopatch : EOPatch
+        EOPatch containing water level data
+    ma_window : int, optional
+        Window size for moving average in days, default 30
+    filename : str, optional
+        Output filename for plot and info, default None
+    lake_name : str, optional
+        Name of the lake, default "Lake"
+    """
     valid_indices = ~np.isnan(eopatch.scalar["WATER_LEVEL"][..., 0])
     dates = np.array(eopatch.timestamps)[valid_indices]
     water_levels = eopatch.scalar["WATER_LEVEL"][valid_indices, 0]
@@ -779,8 +798,9 @@ def plot_water_level_trend(eopatch, ma_window=30, filename=None):
     df.set_index('date', inplace=True)
     df = df.sort_index()
 
-    # Calculate moving average
-    df['ma'] = df['water_level'].rolling(window=ma_window, min_periods=3).mean()
+    # Calculate moving average - using integer window for count-based window
+    # Not using time-based frequency to avoid DatetimeIndex issues
+    df['ma'] = df['water_level'].rolling(window=int(ma_window), min_periods=3).mean()
 
     # Calculate linear trend
     days = np.array([(d - dates[0]).days for d in dates])
@@ -806,7 +826,16 @@ def plot_water_level_trend(eopatch, ma_window=30, filename=None):
                     trend_line(days) + std_resid,
                     color='red', alpha=0.2, label='±1σ Confidence Band')
 
-    ax.set_title(f'{lake_name} Water Level Trend Analysis')
+    # Handle potential encoding issues in matplotlib
+    try:
+        # Use lake_name variable (which might have Polish characters) directly in the plot
+        ax.set_title(f'{lake_name} Water Level Trend Analysis')
+    except UnicodeEncodeError:
+        # Fall back to ASCII with replacement for non-ASCII characters
+        print(f"Warning: Encoding issue with lake name '{lake_name}' in plot. Using ASCII replacement.")
+        ascii_lake_name = lake_name.encode('ascii', 'replace').decode('ascii')
+        ax.set_title(f'{ascii_lake_name} Water Level Trend Analysis')
+
     ax.set_xlabel('Date')
     ax.set_ylabel('Water Level')
     ax.grid(True, alpha=0.3)
@@ -826,7 +855,40 @@ def plot_water_level_trend(eopatch, ma_window=30, filename=None):
         plt.savefig(filename, bbox_inches='tight', dpi=300)
     plt.close(fig)
 
-    return {'trend_coefficient': z[0], 'annual_change_percent': annual_change}
+    # Export trend information to text file
+    trend_info = {
+        'trend_coefficient': z[0],
+        'annual_change_percent': annual_change,
+        'trend_description': trend_desc
+    }
+
+    # Write trend information to text file using UTF-8 encoding
+    if filename:
+        try:
+            # Explicitly use UTF-8 encoding for file output
+            with open(f"{filename.split('.')[0]}_info.txt", "w", encoding="utf-8") as f:
+                f.write(f"Lake: {lake_name}\n")
+                f.write(f"Water Level Trend Analysis\n")
+                f.write(f"===========================\n")
+                f.write(f"Trend coefficient: {z[0]:.6f} per day\n")
+                f.write(f"Annual change: {annual_change:.2f}% per year\n")
+                f.write(f"Trend description: {trend_desc}\n")
+                f.write(f"Analysis based on {len(water_levels)} observations\n")
+                f.write(f"Date range: {min(dates).strftime('%Y-%m-%d')} to {max(dates).strftime('%Y-%m-%d')}\n")
+        except UnicodeEncodeError:
+            # Fall back to ASCII with replacement for non-ASCII characters if UTF-8 fails
+            print(f"Warning: Encoding issue with lake name '{lake_name}'. Writing file with ASCII encoding.")
+            with open(f"{filename.split('.')[0]}_info.txt", "w", encoding="ascii", errors="replace") as f:
+                f.write(f"Lake: {lake_name}\n")
+                f.write(f"Water Level Trend Analysis\n")
+                f.write(f"===========================\n")
+                f.write(f"Trend coefficient: {z[0]:.6f} per day\n")
+                f.write(f"Annual change: {annual_change:.2f}% per year\n")
+                f.write(f"Trend description: {trend_desc}\n")
+                f.write(f"Analysis based on {len(water_levels)} observations\n")
+                f.write(f"Date range: {min(dates).strftime('%Y-%m-%d')} to {max(dates).strftime('%Y-%m-%d')}\n")
+
+    return trend_info
 
 
 def simplified_plot_seasonal_analysis(eopatch, filename=None):
@@ -909,9 +971,28 @@ def modified_monthly_averages(eopatch, filename=None):
     ax.axhline(y=overall_avg, color='red', linestyle='--',
                label=f'Overall Average: {overall_avg:.3f}')
 
-    # Set y-axis to start from 0.8 as requested
+    # Set y-axis limits safely
     min_val = 0.8
-    max_val = max(monthly_avg['mean'] + monthly_avg['std']) + 0.03
+
+    # Calculate max value safely by handling NaN values
+    max_vals = monthly_avg['mean'] + monthly_avg['std']
+    max_vals = max_vals[~np.isnan(max_vals)]  # Remove NaN values
+
+    if len(max_vals) > 0:
+        max_val = max(max_vals) + 0.03
+    else:
+        # Fallback if all values are NaN
+        max_val = max(monthly_avg['mean'][~np.isnan(monthly_avg['mean'])], default=1.0) + 0.1
+
+    # Safety check for invalid limits
+    if np.isnan(min_val) or np.isnan(max_val) or np.isinf(min_val) or np.isinf(max_val):
+        # Use reasonable defaults if limits are invalid
+        min_val = 0.8
+        max_val = 1.0
+
+    if min_val >= max_val:
+        max_val = min_val + 0.2
+
     ax.set_ylim(min_val, max_val)
 
     ax.set_title(f'{lake_name} Monthly Average Water Levels')
@@ -928,8 +1009,20 @@ def modified_monthly_averages(eopatch, filename=None):
     return monthly_avg
 
 
-def plot_extreme_water_levels(eopatch, filename=None):
-    """Display when water was at its highest and lowest levels"""
+def plot_extreme_water_levels(eopatch, filename=None, lake_name="Lake"):
+    # Ensure lake_name is a string to prevent encoding issues
+    lake_name = str(lake_name)
+    """Display when water was at its highest and lowest levels
+
+    Parameters:
+    ----------
+    eopatch : EOPatch
+        EOPatch containing water level data
+    filename : str, optional
+        Output filename for plot and info, default None
+    lake_name : str, optional
+        Name of the lake, default "Lake"
+    """
     valid_indices = ~np.isnan(eopatch.scalar["WATER_LEVEL"][..., 0])
     dates = np.array(eopatch.timestamps)[valid_indices]
     water_levels = eopatch.scalar["WATER_LEVEL"][valid_indices, 0]
@@ -1002,7 +1095,16 @@ def plot_extreme_water_levels(eopatch, filename=None):
             va='bottom', ha='right', fontsize=9,
             bbox=dict(boxstyle='round,pad=0.5', fc='lightblue', alpha=0.7))
 
-    ax.set_title(f'{lake_name} Extreme Water Levels')
+    # Handle potential encoding issues in matplotlib
+    try:
+        # Use lake_name variable directly in the plot
+        ax.set_title(f'{lake_name} Extreme Water Levels')
+    except UnicodeEncodeError:
+        # Fall back to ASCII with replacement for non-ASCII characters
+        print(f"Warning: Encoding issue with lake name '{lake_name}' in plot. Using ASCII replacement.")
+        ascii_lake_name = lake_name.encode('ascii', 'replace').decode('ascii')
+        ax.set_title(f'{ascii_lake_name} Extreme Water Levels')
+
     ax.set_xlabel('Date')
     ax.set_ylabel('Water Level')
     ax.grid(True, alpha=0.3)
@@ -1013,13 +1115,71 @@ def plot_extreme_water_levels(eopatch, filename=None):
         plt.savefig(filename, bbox_inches='tight', dpi=300)
     plt.close(fig)
 
-    return {
+    # Export extreme water level data to text file
+    extreme_info = {
         'highest': {'date': highest_date, 'level': highest_level},
         'lowest': {'date': lowest_date, 'level': lowest_level},
         'top_5_high': top_5_high,
         'top_5_low': top_5_low
     }
 
+    # Write extreme water level information to text file with explicit encoding handling
+    if filename:
+        try:
+            # Explicitly use UTF-8 encoding for file output
+            with open(f"{filename.split('.')[0]}_info.txt", "w", encoding='utf-8') as f:
+                f.write(f"Lake: {lake_name}\n")
+                f.write(f"Extreme Water Levels Analysis\n")
+                f.write(f"===========================\n\n")
+
+                f.write(f"HIGHEST WATER LEVEL\n")
+                f.write(f"Date: {highest_date.strftime('%Y-%m-%d')}\n")
+                f.write(f"Level: {highest_level:.3f}\n")
+                f.write(
+                    f"Season: {next((row['season'] for _, row in top_5_high.iterrows() if row['date'] == highest_date), 'Unknown')}\n\n")
+
+                f.write(f"LOWEST WATER LEVEL\n")
+                f.write(f"Date: {lowest_date.strftime('%Y-%m-%d')}\n")
+                f.write(f"Level: {lowest_level:.3f}\n")
+                f.write(
+                    f"Season: {next((row['season'] for _, row in top_5_low.iterrows() if row['date'] == lowest_date), 'Unknown')}\n\n")
+
+                f.write(f"TOP 5 HIGHEST LEVELS\n")
+                for i, (_, row) in enumerate(top_5_high.iterrows(), 1):
+                    f.write(f"{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})\n")
+
+                f.write(f"\nTOP 5 LOWEST LEVELS\n")
+                for i, (_, row) in enumerate(top_5_low.iterrows(), 1):
+                    f.write(f"{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})\n")
+        except UnicodeEncodeError:
+            # Fall back to ASCII with replacement for non-ASCII characters if UTF-8 fails
+            print(f"Warning: Encoding issue with lake name '{lake_name}'. Writing file with ASCII encoding.")
+            with open(f"{filename.split('.')[0]}_info.txt", "w", encoding="ascii", errors="replace") as f:
+                f.write(f"Lake: {lake_name}\n")
+                f.write(f"Extreme Water Levels Analysis\n")
+                f.write(f"===========================\n\n")
+
+                f.write(f"HIGHEST WATER LEVEL\n")
+                f.write(f"Date: {highest_date.strftime('%Y-%m-%d')}\n")
+                f.write(f"Level: {highest_level:.3f}\n")
+                f.write(
+                    f"Season: {next((row['season'] for _, row in top_5_high.iterrows() if row['date'] == highest_date), 'Unknown')}\n\n")
+
+                f.write(f"LOWEST WATER LEVEL\n")
+                f.write(f"Date: {lowest_date.strftime('%Y-%m-%d')}\n")
+                f.write(f"Level: {lowest_level:.3f}\n")
+                f.write(
+                    f"Season: {next((row['season'] for _, row in top_5_low.iterrows() if row['date'] == lowest_date), 'Unknown')}\n\n")
+
+                f.write(f"TOP 5 HIGHEST LEVELS\n")
+                for i, (_, row) in enumerate(top_5_high.iterrows(), 1):
+                    f.write(f"{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})\n")
+
+                f.write(f"\nTOP 5 LOWEST LEVELS\n")
+                for i, (_, row) in enumerate(top_5_low.iterrows(), 1):
+                    f.write(f"{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})\n")
+
+    return extreme_info
 
 def plot_original_vs_filtered(eopatch, filename=None):
     """Plot a comparison between original and filtered water levels"""
@@ -1086,12 +1246,12 @@ plot_rgb_w_water(patch, -1, "water_overlay_last.png")
 plot_water_levels(patch, 1.0, "water_levels.png")
 plot_annual_comparison(patch, "annual_comparison")
 plot_water_level_histogram(patch, "water_level_histogram")
-plot_water_level_trend(patch, 30, "water_level_trend")
+plot_water_level_trend(eopatch, 30, "water_level_trend", lake_name)
 
 # v0.11 patch (added jump filter and the following plots)
 simplified_plot_seasonal_analysis(patch, "simplified_seasonal_analysis")
 modified_monthly_averages(patch, "modified_monthly_averages")
-plot_extreme_water_levels(patch, "extreme_water_levels")
+plot_extreme_water_levels(eopatch, "extreme_water_levels", lake_name)
 
 
 plot_original_vs_filtered(patch, "original_vs_filtered.png")
