@@ -2138,7 +2138,6 @@ def plot_original_vs_filtered(eopatch, filename=None):
         plt.savefig(filename, bbox_inches='tight', dpi=300)
     plt.close(fig)
 
-
 # -----------------------------------
 # STEP 6: Save Results
 # -----------------------------------
