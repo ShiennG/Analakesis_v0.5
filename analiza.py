@@ -525,6 +525,7 @@ def run_analysis(lake_name="Isąg"):
 
         # Save figure
         if filename:
+            filename = os.path.join("static", filename)
             plt.savefig(filename, bbox_inches='tight', dpi=300)
 
         # Create seasonal prediction chart
@@ -627,6 +628,7 @@ def run_analysis(lake_name="Isąg"):
 
         plt.tight_layout()
         if filename:
+            filename = os.path.join("static", filename)
             plt.savefig(filename, bbox_inches='tight', dpi=300)
 
         plt.close(fig)
@@ -683,6 +685,10 @@ def run_analysis(lake_name="Isąg"):
         ratio = np.abs(eopatch.bbox.max_x - eopatch.bbox.min_x) / np.abs(eopatch.bbox.max_y - eopatch.bbox.min_y)
         fig, ax = plt.subplots(figsize=(ratio * 10, 10))
 
+        # Set background color to avoid white borders
+        fig.patch.set_facecolor('none')
+        ax.set_facecolor('none')
+
         # RGB background image
         ax.imshow(np.clip(2.5 * eopatch.data["BANDS"][..., [2, 1, 0]][idx], 0, 1))
 
@@ -705,7 +711,7 @@ def run_analysis(lake_name="Isąg"):
         # Save without white border
         if filename:
             filename = os.path.join("static", filename)
-            plt.savefig(filename, bbox_inches='tight', dpi=300)
+            plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=300, transparent=True)
 
         plt.close(fig)
 
