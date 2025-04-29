@@ -1353,7 +1353,6 @@ def run_analysis(lake_name="Isąg"):
 
 
 
-
     plot_rgb_w_water(patch, 0, "water_overlay_first.png")
     plot_rgb_w_water(patch, -1, "water_overlay_last.png")
     valid_water_levels = plot_water_levels(patch, 1.0, "water_levels.png")
