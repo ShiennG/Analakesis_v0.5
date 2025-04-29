@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analakesis</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1 class="title">Analiza hydrologicznych zmian na Mazurach</h1>
+    </header>
+    <div class="container">
+        <div class="lake-input">
+            <label for="lakeName">Nazwa jeziora:</label>
+            <input type="text" id="lakeName" placeholder="np. Kisajno" value="Kisajno" class="textbox">
+        </div>
+        <div class="button-wrapper">
+            <button onclick="startAnalysis()" id="startButton">Rozpocznij analizę</button>
+            <button class="close-btn" id="closeBtn" onclick="resetAnalysis()">X</button>
+        </div>
+        <div class="result-box" id="result">
+            <h3>Wyniki analizy:</h3>
+            <p id="analysisResult">Tutaj wyświetli się analiza</p>
+            <div id="loadingIndicator" style="display: none;">
+                <p>To może potrwać kilka minut.</p>
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        <div id="map-container">
+            <img src="static/water_overlay_first.png" alt="wynik1" class="map-image">
+            <img src="static/water_overlay_last.png" alt="wynik" class="map-image">
+            <img src="static/water_levels.png" alt="Mapa jeziora" class="map-image water-levels">
+        </div>
+    </div>
+    <div class="clock" id="clock">00:00:00</div>
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()">
+        <span>Tryb ciemny</span>🌙
+    </div>
+    <button class="project-info-button" onclick="showProjectInfo()">O projekcie</button>
+    <div id="projectInfo" class="project-info-container">
+        <div class="project-info-header">
+            <h3>O projekcie</h3>
+            <button class="close-project-info" onclick="closeProjectInfo()">X</button>
+        </div>
+        <div class="project-info-content">
+            <div class="text-box">
+                <p>Aplikacja "Analakesis" to interaktywne narzędzie stworzone z myślą o szybkim i przejrzystym dostępie do danych dotyczących zmian poziomu wód w regionie Mazur. Skupia się na analizie Jezior na Mazurach, prezentując użytkownikowi wizualizację wyników oraz dane w czytelnej i nowoczesnej formie.</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        function startAnalysis() {
+            // Pobieramy nazwę jeziora z pola input
+            const lakeName = document.getElementById('lakeName').value.trim();
+            
+            // Sprawdzamy czy pole nie jest puste
+            if (!lakeName) {
+                document.getElementById('analysisResult').innerHTML = '<p class="error">Proszę podać nazwę jeziora</p>';
+                document.getElementById('result').classList.add('show');
+                return;
+            }
+            
+            // Pokazujemy loading indicator i ukrywamy przycisk
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('analysisResult').innerHTML = 'Trwa analiza...';
+            document.getElementById('result').classList.add('show');
+            
+            // Wyślij żądanie do serwera z nazwą jeziora
+            fetch('/run-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ lake_name: lakeName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Ukryj loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('startButton').disabled = false;
+                
+                if (data.success) {
+                    // Wyświetlamy wyniki analizy
+                    let resultText = `
+                        <h4>Analiza jeziora: ${data.lake_name}</h4>
+                        <p>Czas wykonania: ${data.execution_time} sekund</p>
+                        <p>${data.message}</p>
+                    `;
+                    document.getElementById('analysisResult').innerHTML = resultText;
+                    
+                    // Odświeżamy obrazy (dodając timestamp żeby wymusić odświeżenie cache)
+                    const timestamp = new Date().getTime();
+                    const mapImages = document.querySelectorAll('.map-image');
+                    mapImages.forEach(img => {
+                        // Zachowujemy oryginalny src i dodajemy timestamp
+                        const originalSrc = img.src.split('?')[0];
+                        img.src = `${originalSrc}?t=${timestamp}`;
+                        img.classList.add('show');
+                    });
+                    
+                    const closeBtn = document.getElementById('closeBtn');
+                    closeBtn.classList.add('show');
+                    setTimeout(() => {
+                        closeBtn.classList.add('animate');
+                    }, 10);
+                } else {
+                    // Wyświetlamy błąd
+                    document.getElementById('analysisResult').innerHTML = `
+                        <p class="error">Błąd: ${data.message}</p>
+                    `;
+                }
+            })
+            .catch(error => {
+                // Obsługa błędów
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('startButton').disabled = false;
+                document.getElementById('analysisResult').innerHTML = `
+                    <p class="error">Błąd połączenia z serwerem: ${error.message}</p>
+                `;
+            });
+        }
+
+        function resetAnalysis() {
+            document.getElementById('result').classList.remove('show');
+            const mapImages = document.querySelectorAll('.map-image');
+            mapImages.forEach(img => img.classList.remove('show'));
+            const closeBtn = document.getElementById('closeBtn');
+            closeBtn.classList.remove('show');
+            closeBtn.classList.remove('animate');
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+        
+        function updateClock() {
+            const clock = document.getElementById('clock');
+            const now = new Date();
+            clock.innerText = now.toLocaleTimeString();
+        }
+        
+        setInterval(updateClock, 1000);
+        updateClock();
+        
+        function showProjectInfo() {
+            const projectInfoContainer = document.getElementById('projectInfo');
+            projectInfoContainer.classList.add('show');
+        }
+        
+        function closeProjectInfo() {
+            const projectInfoContainer = document.getElementById('projectInfo');
+            projectInfoContainer.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
