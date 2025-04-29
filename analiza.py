@@ -22,7 +22,7 @@ config.sh_client_secret = "m5OLdYpEwpc7EJ4TpyfyjLHDqZbqMdyu"
 config.save()
 
 lake_name = "Isąg"
-first_date = "2018-01-01"
+first_date = "2023-01-01"
 last_date = "2025-01-01"
 days_to_forecast = 365
 
