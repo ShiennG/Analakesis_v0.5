@@ -32,6 +32,14 @@
             <img src="static/water_overlay_first.png" alt="wynik1" class="map-image">
             <img src="static/water_overlay_last.png" alt="wynik" class="map-image">
             <img src="static/water_levels.png" alt="Mapa jeziora" class="map-image water-levels">
+			<img src="static/original_vs_filtered.png" alt="Oryginalne vs. przefiltrowane" class="map-image water-levels">
+			<img src="static/annual_comparison.png" alt="Porównanie roczne" class="map-image water-levels">
+			<img src="static/simplified_seasonal_analysis.png" alt="Analiza sezonowa" class="map-image water-levels">
+			<img src="static/extreme_water_levels.png" alt="Ekstremalne poziomy wody" class="map-image water-levels">
+			<img src="static/modified_monthly_averages.png" alt="Średnie miesięczne" class="map-image water-levels">
+			<img src="static/water_level_histogram.png" alt="Histogram poziomu wody" class="map-image water-levels">
+			<img src="static/water_level_trend.png" alt="Trend poziomu wody" class="map-image water-levels">
+			<img src="static/water_level_forecast.png" alt="Prognoza poziomu wody" class="map-image water-levels">
         </div>
     </div>
     <div class="clock" id="clock">00:00:00</div>
@@ -125,8 +133,12 @@
 
         function resetAnalysis() {
             document.getElementById('result').classList.remove('show');
+            
             const mapImages = document.querySelectorAll('.map-image');
-            mapImages.forEach(img => img.classList.remove('show'));
+            mapImages.forEach(img => {
+                img.classList.remove('show');
+            });
+
             const closeBtn = document.getElementById('closeBtn');
             closeBtn.classList.remove('show');
             closeBtn.classList.remove('animate');
