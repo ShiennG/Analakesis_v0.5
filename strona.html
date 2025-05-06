@@ -3,38 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analakesis</title>
+    <title>LakeSat Analytics</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1 class="title">Analiza hydrologicznych zmian na Mazurach</h1>
+        <h1 class="title">Hydrological Changes Analysis</h1>
     </header>
     <div class="container">
         <div class="lake-input">
-            <label for="lakeName">Nazwa jeziora:</label>
+            <label for="lakeName">Lake name:</label>
             <input type="text" id="lakeName" placeholder="np. Kisajno" value="Kisajno" class="textbox">
         </div>
         <div class="date-input-container">
             <div class="date-input">
-                <label for="startDate">Data początkowa:</label>
+                <label for="startDate">Start date:</label>
                 <input type="date" id="startDate" value="2019-02-02" class="textbox date-picker">
             </div>
             <div class="date-input">
-                <label for="endDate">Data końcowa:</label>
+                <label for="endDate">End date:</label>
                 <input type="date" id="endDate" value="2025-03-15" class="textbox date-picker">
             </div>
         </div>
         <div class="button-wrapper">
-            <button onclick="startAnalysis()" id="startButton">Rozpocznij analizę</button>
+            <button onclick="startAnalysis()" id="startButton">Start Analysis</button>
             <button class="close-btn" id="closeBtn" onclick="resetAnalysis()">X</button>
         </div>
         <div class="result-box" id="result">
-            <h3>Wyniki analizy:</h3>
-            <p id="analysisResult">Tutaj wyświetli się analiza</p>
+            <h3>Results:</h3>
+            <p id="analysisResult">The analysis will be displayed here</p>
             <div id="loadingIndicator" style="display: none;">
-                <p>To może potrwać kilka minut.</p>
+                <p>This may take a few minutes.</p>
                 <div class="loading-spinner"></div>
             </div>
         </div>
@@ -54,17 +54,17 @@
     </div>
     <div class="clock" id="clock">00:00:00</div>
     <div class="dark-mode-toggle" onclick="toggleDarkMode()">
-        <span>Tryb ciemny</span>🌙
+        <span>Dark mode</span>🌙
     </div>
-    <button class="project-info-button" onclick="showProjectInfo()">O projekcie</button>
+    <button class="project-info-button" onclick="showProjectInfo()">About</button>
     <div id="projectInfo" class="project-info-container">
         <div class="project-info-header">
-            <h3>O projekcie</h3>
+            <h3>About our project</h3>
             <button class="close-project-info" onclick="closeProjectInfo()">X</button>
         </div>
         <div class="project-info-content">
             <div class="text-box">
-                <p>Aplikacja "Analakesis" to interaktywne narzędzie stworzone z myślą o szybkim i przejrzystym dostępie do danych dotyczących zmian poziomu wód w regionie Mazur. Skupia się na analizie Jezior na Mazurach, prezentując użytkownikowi wizualizację wyników oraz dane w czytelnej i nowoczesnej formie.</p>
+                <p>The "LakeSat Analytics" application is an interactive tool designed for quick and clear access to data on water level changes in the Masurian region. It focuses on the analysis of lakes in Masuria, providing users with visualizations of the results and data in a clear and modern format.</p>
             </div>
         </div>
     </div>
@@ -75,14 +75,14 @@
     const endDate = document.getElementById('endDate').value;
 
     if (!lakeName) {
-        document.getElementById('analysisResult').innerHTML = '<p class="error">Proszę podać nazwę jeziora</p>';
+        document.getElementById('analysisResult').innerHTML = '<p class="error">Please enter the lake name</p>';
         document.getElementById('result').classList.add('show');
         return;
     }
 
     document.getElementById('loadingIndicator').style.display = 'block';
     document.getElementById('startButton').disabled = true;
-    document.getElementById('analysisResult').innerHTML = 'Trwa analiza...';
+    document.getElementById('analysisResult').innerHTML = 'Analysis in progress...';
     document.getElementById('result').classList.add('show');
 
     fetch('/run-analysis', {
@@ -103,8 +103,8 @@
 
         if (data.success) {
             let resultText = `
-                <h4>Analiza jeziora: ${data.lake_name}</h4>
-                <p>Czas wykonania: ${data.execution_time} sekund</p>
+                <h4>Lake name: ${data.lake_name}</h4>
+                <p>Analysis time: ${data.execution_time} seconds</p>
                 <p>${data.message}</p>
             `;
             document.getElementById('analysisResult').innerHTML = resultText;
@@ -132,7 +132,7 @@
         document.getElementById('loadingIndicator').style.display = 'none';
         document.getElementById('startButton').disabled = false;
         document.getElementById('analysisResult').innerHTML = `
-            <p class="error">Błąd połączenia z serwerem: ${error.message}</p>
+            <p class="error">Server error: ${error.message}</p>
         `;
     });
 }
