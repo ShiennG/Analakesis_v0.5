@@ -16,6 +16,16 @@
             <label for="lakeName">Nazwa jeziora:</label>
             <input type="text" id="lakeName" placeholder="np. Kisajno" value="Kisajno" class="textbox">
         </div>
+        <div class="date-input-container">
+            <div class="date-input">
+                <label for="startDate">Data początkowa:</label>
+                <input type="date" id="startDate" value="2019-02-02" class="textbox date-picker">
+            </div>
+            <div class="date-input">
+                <label for="endDate">Data końcowa:</label>
+                <input type="date" id="endDate" value="2025-03-15" class="textbox date-picker">
+            </div>
+        </div>
         <div class="button-wrapper">
             <button onclick="startAnalysis()" id="startButton">Rozpocznij analizę</button>
             <button class="close-btn" id="closeBtn" onclick="resetAnalysis()">X</button>
@@ -60,76 +70,72 @@
     </div>
     <script>
         function startAnalysis() {
-            // Pobieramy nazwę jeziora z pola input
-            const lakeName = document.getElementById('lakeName').value.trim();
-            
-            // Sprawdzamy czy pole nie jest puste
-            if (!lakeName) {
-                document.getElementById('analysisResult').innerHTML = '<p class="error">Proszę podać nazwę jeziora</p>';
-                document.getElementById('result').classList.add('show');
-                return;
-            }
-            
-            // Pokazujemy loading indicator i ukrywamy przycisk
-            document.getElementById('loadingIndicator').style.display = 'block';
-            document.getElementById('startButton').disabled = true;
-            document.getElementById('analysisResult').innerHTML = 'Trwa analiza...';
-            document.getElementById('result').classList.add('show');
-            
-            // Wyślij żądanie do serwera z nazwą jeziora
-            fetch('/run-analysis', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ lake_name: lakeName })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Ukryj loading indicator
-                document.getElementById('loadingIndicator').style.display = 'none';
-                document.getElementById('startButton').disabled = false;
-                
-                if (data.success) {
-                    // Wyświetlamy wyniki analizy
-                    let resultText = `
-                        <h4>Analiza jeziora: ${data.lake_name}</h4>
-                        <p>Czas wykonania: ${data.execution_time} sekund</p>
-                        <p>${data.message}</p>
-                    `;
-                    document.getElementById('analysisResult').innerHTML = resultText;
-                    
-                    // Odświeżamy obrazy (dodając timestamp żeby wymusić odświeżenie cache)
-                    const timestamp = new Date().getTime();
-                    const mapImages = document.querySelectorAll('.map-image');
-                    mapImages.forEach(img => {
-                        // Zachowujemy oryginalny src i dodajemy timestamp
-                        const originalSrc = img.src.split('?')[0];
-                        img.src = `${originalSrc}?t=${timestamp}`;
-                        img.classList.add('show');
-                    });
-                    
-                    const closeBtn = document.getElementById('closeBtn');
-                    closeBtn.classList.add('show');
-                    setTimeout(() => {
-                        closeBtn.classList.add('animate');
-                    }, 10);
-                } else {
-                    // Wyświetlamy błąd
-                    document.getElementById('analysisResult').innerHTML = `
-                        <p class="error">Błąd: ${data.message}</p>
-                    `;
-                }
-            })
-            .catch(error => {
-                // Obsługa błędów
-                document.getElementById('loadingIndicator').style.display = 'none';
-                document.getElementById('startButton').disabled = false;
-                document.getElementById('analysisResult').innerHTML = `
-                    <p class="error">Błąd połączenia z serwerem: ${error.message}</p>
-                `;
+    const lakeName = document.getElementById('lakeName').value.trim();
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    if (!lakeName) {
+        document.getElementById('analysisResult').innerHTML = '<p class="error">Proszę podać nazwę jeziora</p>';
+        document.getElementById('result').classList.add('show');
+        return;
+    }
+
+    document.getElementById('loadingIndicator').style.display = 'block';
+    document.getElementById('startButton').disabled = true;
+    document.getElementById('analysisResult').innerHTML = 'Trwa analiza...';
+    document.getElementById('result').classList.add('show');
+
+    fetch('/run-analysis', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            lake_name: lakeName,
+            start_date: startDate,
+            end_date: endDate
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('startButton').disabled = false;
+
+        if (data.success) {
+            let resultText = `
+                <h4>Analiza jeziora: ${data.lake_name}</h4>
+                <p>Czas wykonania: ${data.execution_time} sekund</p>
+                <p>${data.message}</p>
+            `;
+            document.getElementById('analysisResult').innerHTML = resultText;
+
+            const timestamp = new Date().getTime();
+            const mapImages = document.querySelectorAll('.map-image');
+            mapImages.forEach(img => {
+                const originalSrc = img.src.split('?')[0];
+                img.src = `${originalSrc}?t=${timestamp}`;
+                img.classList.add('show');
             });
+
+            const closeBtn = document.getElementById('closeBtn');
+            closeBtn.classList.add('show');
+            setTimeout(() => {
+                closeBtn.classList.add('animate');
+            }, 10);
+        } else {
+            document.getElementById('analysisResult').innerHTML = `
+                <p class="error">Błąd: ${data.message}</p>
+            `;
         }
+    })
+    .catch(error => {
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('startButton').disabled = false;
+        document.getElementById('analysisResult').innerHTML = `
+            <p class="error">Błąd połączenia z serwerem: ${error.message}</p>
+        `;
+    });
+}
 
         function resetAnalysis() {
             document.getElementById('result').classList.remove('show');

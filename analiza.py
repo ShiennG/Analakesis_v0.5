@@ -22,7 +22,7 @@ from sklearn.model_selection import train_test_split
 
 
 # Główna funkcja analizy, która przyjmuje nazwę jeziora jako parametr
-def run_analysis(lake_name="Isąg"):
+def run_analysis(lake_name="Isąg", start_date="2019-02-02", end_date="2025-03-15"):
     start_time = time.time()
 
     # Tworzenie folderu 'static', jeśli nie istnieje
@@ -32,7 +32,7 @@ def run_analysis(lake_name="Isąg"):
     # -----------------------------------
     # STEP 1: Fetch Lake Polygon
     # -----------------------------------
-
+    
     def fetch_lake_polygon_wkt(lake_name, country="Poland"):
         """
         Fetch the polygon for a specific lake by its exact name.
@@ -233,7 +233,9 @@ def run_analysis(lake_name="Isąg"):
     )
     workflow = EOWorkflow(workflow_nodes)
     download_node = workflow_nodes[0]
-    time_interval = ["2021-01-01", "2024-12-31"]
+    
+    # Użyj przekazanych dat zamiast stałych wartości
+    time_interval = [start_date, end_date]
 
     result = workflow.execute({
         download_node: {"bbox": dam_bbox, "time_interval": time_interval}
@@ -946,14 +948,14 @@ def run_analysis(lake_name="Isąg"):
             try:
                 # Explicitly use UTF-8 encoding for file output
                 with open(f"{filename.split('.')[0]}_info.txt", "w", encoding="utf-8") as f:
-                    f.write(f"Lake: {lake_name}\n")
-                    f.write(f"Water Level Trend Analysis\n")
-                    f.write(f"===========================\n")
-                    f.write(f"Trend coefficient: {z[0]:.6f} per day\n")
-                    f.write(f"Annual change: {annual_change:.2f}% per year\n")
-                    f.write(f"Trend description: {trend_desc}\n")
-                    f.write(f"Analysis based on {len(water_levels)} observations\n")
-                    f.write(f"Date range: {min(dates).strftime('%Y-%m-%d')} to {max(dates).strftime('%Y-%m-%d')}\n")
+                    f.write(f'<div class="text-container1">\n')
+                    f.write(f"<p><b>Water Level Trend Analysis</b></p>\n")
+                    f.write(f"<p>Trend coefficient: {z[0]:.6f} per day</p>\n")
+                    f.write(f"<p>Annual change: {annual_change:.2f}% per year</p>\n")
+                    f.write(f"<p>Trend description: {trend_desc}</p>\n")
+                    f.write(f"<p>Analysis based on {len(water_levels)} observations</p>\n")
+                    f.write(f"<p>Date range: {min(dates).strftime('%Y-%m-%d')} to {max(dates).strftime('%Y-%m-%d')}</p>\n")
+                    f.write(f"</div>\n")
             except UnicodeEncodeError:
                 # Fall back to ASCII with replacement for non-ASCII characters if UTF-8 fails
                 print(f"Warning: Encoding issue with lake name '{lake_name}'. Writing file with ASCII encoding.")
@@ -1221,60 +1223,65 @@ def run_analysis(lake_name="Isąg"):
             try:
                 # Explicitly use UTF-8 encoding for file output
                 with open(f"{filename.split('.')[0]}_info.txt", "w", encoding='utf-8') as f:
-                    f.write(f"Lake: {lake_name}\n")
-                    f.write(f"Extreme Water Levels Analysis\n")
-                    f.write(f"===========================\n\n")
+                    f.write(f'<div class="text-container">\n')
+                    f.write(f'<div class="row">\n')
+                    f.write(f'<div class="aitxt">\n')
+                    f.write(f"<p><b>HIGHEST WATER LEVEL</b></p>\n")
+                    f.write(f"<p>Date: {highest_date.strftime('%Y-%m-%d')}</p>\n")
+                    f.write(f"<p>Level: {highest_level:.3f}</p>\n")
+                    f.write(f"<p>Season: {next((row['season'] for _, row in top_5_high.iterrows() if row['date'] == highest_date), 'Unknown')}</p>\n")
+                    f.write(f"</div>\n")
 
-                    f.write(f"HIGHEST WATER LEVEL\n")
-                    f.write(f"Date: {highest_date.strftime('%Y-%m-%d')}\n")
-                    f.write(f"Level: {highest_level:.3f}\n")
-                    f.write(
-                        f"Season: {next((row['season'] for _, row in top_5_high.iterrows() if row['date'] == highest_date), 'Unknown')}\n\n")
+                    f.write(f'<div class="aitxt">\n')
+                    f.write(f"<p><b>LOWEST WATER LEVEL</b></p>\n")
+                    f.write(f"<p>Date: {lowest_date.strftime('%Y-%m-%d')}</p>\n")
+                    f.write(f"<p>Level: {lowest_level:.3f}</p>\n")
+                    f.write(f"<p>Season: {next((row['season'] for _, row in top_5_low.iterrows() if row['date'] == lowest_date), 'Unknown')}</p>\n")
+                    f.write(f"</div>\n")
+                    f.write(f"</div>\n")
 
-                    f.write(f"LOWEST WATER LEVEL\n")
-                    f.write(f"Date: {lowest_date.strftime('%Y-%m-%d')}\n")
-                    f.write(f"Level: {lowest_level:.3f}\n")
-                    f.write(
-                        f"Season: {next((row['season'] for _, row in top_5_low.iterrows() if row['date'] == lowest_date), 'Unknown')}\n\n")
-
-                    f.write(f"TOP 5 HIGHEST LEVELS\n")
+                    # Rząd 2
+                    f.write(f'<div class="row">\n')
+                    f.write(f'<div class="aitxt">\n')
+                    f.write(f"<p><b>TOP 5 HIGHEST LEVELS</b></p>\n")
                     for i, (_, row) in enumerate(top_5_high.iterrows(), 1):
-                        f.write(
-                            f"{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})\n")
+                        f.write(f"<p>{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})</p>\n")
+                    f.write(f"</div>\n")
 
-                    f.write(f"\nTOP 5 LOWEST LEVELS\n")
+                    f.write(f'<div class="aitxt">\n')
+                    f.write(f"<p><b>TOP 5 LOWEST LEVELS</b></p>\n")
                     for i, (_, row) in enumerate(top_5_low.iterrows(), 1):
-                        f.write(
-                            f"{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})\n")
+                        f.write(f"<p>{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})</p>\n")
+                    f.write(f"</div>\n")
+                    f.write(f"</div>\n")
+                    f.write(f"</div>\n")
+
             except UnicodeEncodeError:
                 # Fall back to ASCII with replacement for non-ASCII characters if UTF-8 fails
                 print(f"Warning: Encoding issue with lake name '{lake_name}'. Writing file with ASCII encoding.")
                 with open(f"{filename.split('.')[0]}_info.txt", "w", encoding="ascii", errors="replace") as f:
-                    f.write(f"Lake: {lake_name}\n")
-                    f.write(f"Extreme Water Levels Analysis\n")
-                    f.write(f"===========================\n\n")
-
-                    f.write(f"HIGHEST WATER LEVEL\n")
-                    f.write(f"Date: {highest_date.strftime('%Y-%m-%d')}\n")
-                    f.write(f"Level: {highest_level:.3f}\n")
+                    f.write(f"<p>Lake: {lake_name}</p>\n")
+                    f.write(f"<p>HIGHEST WATER LEVEL</p>\n")
+                    f.write(f"<p>Date: {highest_date.strftime('%Y-%m-%d')}</p>\n")
+                    f.write(f"<p>Level: {highest_level:.3f}</p>\n")
                     f.write(
-                        f"Season: {next((row['season'] for _, row in top_5_high.iterrows() if row['date'] == highest_date), 'Unknown')}\n\n")
-
-                    f.write(f"LOWEST WATER LEVEL\n")
-                    f.write(f"Date: {lowest_date.strftime('%Y-%m-%d')}\n")
-                    f.write(f"Level: {lowest_level:.3f}\n")
+                        f"<p>Season: {next((row['season'] for _, row in top_5_high.iterrows() if row['date'] == highest_date), 'Unknown')}</p>\n\n")
+                    f.write(f"<p></p>\n")
+                    f.write(f"<p>LOWEST WATER LEVEL</p>\n")
+                    f.write(f"<p>Date: {lowest_date.strftime('%Y-%m-%d')}</p>\n")
+                    f.write(f"<p>Level: {lowest_level:.3f}</p>\n")
                     f.write(
-                        f"Season: {next((row['season'] for _, row in top_5_low.iterrows() if row['date'] == lowest_date), 'Unknown')}\n\n")
-
-                    f.write(f"TOP 5 HIGHEST LEVELS\n")
+                        f"<p>Season: {next((row['season'] for _, row in top_5_low.iterrows() if row['date'] == lowest_date), 'Unknown')}</p>\n\n")
+                    f.write(f"<p></p>\n")
+                    f.write(f"<p>TOP 5 HIGHEST LEVELS</p>\n")
                     for i, (_, row) in enumerate(top_5_high.iterrows(), 1):
                         f.write(
-                            f"{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})\n")
-
-                    f.write(f"\nTOP 5 LOWEST LEVELS\n")
+                            f"<p>{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})</p>\n")
+                    f.write(f"<p></p>\n")
+                    f.write(f"<p>\nTOP 5 LOWEST LEVELS</p>\n")
                     for i, (_, row) in enumerate(top_5_low.iterrows(), 1):
                         f.write(
-                            f"{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})\n")
+                            f"<p>{i}. {row['water_level']:.3f} on {row['date'].strftime('%Y-%m-%d')} ({row['season']})</p>\n")
 
         return extreme_info
 
@@ -1353,6 +1360,7 @@ def run_analysis(lake_name="Isąg"):
 
 
 
+
     plot_rgb_w_water(patch, 0, "water_overlay_first.png")
     plot_rgb_w_water(patch, -1, "water_overlay_last.png")
     valid_water_levels = plot_water_levels(patch, 1.0, "water_levels.png")
@@ -1395,8 +1403,10 @@ if __name__ == "__main__":
     # Dodana obsługa argumentów z linii poleceń
     parser = argparse.ArgumentParser(description='Analiza hydrologiczna jeziora')
     parser.add_argument('--lake', type=str, default='Kisajno', help='Nazwa jeziora do analizy')
+    parser.add_argument('--start_date', type=str, default='2019-02-02', help='Data początkowa analizy (YYYY-MM-DD)')
+    parser.add_argument('--end_date', type=str, default='2025-03-15', help='Data końcowa analizy (YYYY-MM-DD)')
     args = parser.parse_args()
-
-    # Użyj nazwy jeziora z argumentów
-    result = run_analysis(args.lake)
+    
+    # Użyj nazwy jeziora i dat z argumentów
+    result = run_analysis(lake_name=args.lake, start_date=args.start_date, end_date=args.end_date)
     print(result)
