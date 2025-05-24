@@ -16,6 +16,51 @@
             <label for="lakeName">Lake name:</label>
             <input type="text" id="lakeName" placeholder="np. Kisajno" value="Kisajno" class="textbox">
         </div>
+        <div class="country-input">
+            <label for="countryName">Country:</label>
+            <select id="countryName" class="textbox">
+                <option value="Poland">Poland</option>
+                <option value="Germany">Germany</option>
+                <option value="Sweden">Sweden</option>
+                <option value="Finland">Finland</option>
+                <option value="Norway">Norway</option>
+                <option value="Denmark">Denmark</option>
+                <option value="Czech Republic">Czech Republic</option>
+                <option value="Slovakia">Slovakia</option>
+                <option value="Austria">Austria</option>
+                <option value="Switzerland">Switzerland</option>
+                <option value="Lithuania">Lithuania</option>
+                <option value="Latvia">Latvia</option>
+                <option value="Estonia">Estonia</option>
+                <option value="Belarus">Belarus</option>
+                <option value="Ukraine">Ukraine</option>
+                <option value="Hungary">Hungary</option>
+                <option value="Romania">Romania</option>
+                <option value="Bulgaria">Bulgaria</option>
+                <option value="Slovenia">Slovenia</option>
+                <option value="Croatia">Croatia</option>
+                <option value="Serbia">Serbia</option>
+                <option value="Bosnia and Herzegovina">Bosnia and Herzegovina</option>
+                <option value="Montenegro">Montenegro</option>
+                <option value="Albania">Albania</option>
+                <option value="North Macedonia">North Macedonia</option>
+                <option value="Greece">Greece</option>
+                <option value="Italy">Italy</option>
+                <option value="France">France</option>
+                <option value="Spain">Spain</option>
+                <option value="Portugal">Portugal</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Ireland">Ireland</option>
+                <option value="Netherlands">Netherlands</option>
+                <option value="Belgium">Belgium</option>
+                <option value="Luxembourg">Luxembourg</option>
+                <option value="Canada">Canada</option>
+                <option value="United States">United States</option>
+                <option value="Mexico">Mexico</option>
+                <option value="Russia">Russia</option>
+                <option value="Turkey">Turkey</option>
+            </select>
+        </div>
         <div class="date-input-container">
             <div class="date-input">
                 <label for="startDate">Start date:</label>
@@ -71,6 +116,7 @@
     <script>
         function startAnalysis() {
     const lakeName = document.getElementById('lakeName').value.trim();
+    const countryName = document.getElementById('countryName').value;
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
 
@@ -92,6 +138,7 @@
         },
         body: JSON.stringify({
             lake_name: lakeName,
+            country_name: countryName,
             start_date: startDate,
             end_date: endDate
         })
@@ -104,6 +151,7 @@
         if (data.success) {
             let resultText = `
                 <h4>Lake name: ${data.lake_name}</h4>
+                <h4>Country: ${data.country_name}</h4>
                 <p>Analysis time: ${data.execution_time} seconds</p>
                 <p>${data.message}</p>
             `;

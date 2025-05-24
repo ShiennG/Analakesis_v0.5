@@ -373,8 +373,15 @@ button {
 	display: block;
     margin: 0 auto;
 	margin-top: 5px;
+	min-width: 200px;
+	box-sizing: border-box;
+	border: 2px solid #ccc;
 	}
 
+.select.textbox {
+	width: 20%;
+	min-width: 200px;
+}
 .lake-input {
     display: flex;
     flex-direction: column;
@@ -403,5 +410,11 @@ button {
 }
 
 .date-input {
+	padding-bottom: 5px;
+}
+
+.country-input {
+	display: flex;
+    flex-direction: column;
 	padding-bottom: 5px;
 }

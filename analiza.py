@@ -22,7 +22,7 @@ from sklearn.model_selection import train_test_split
 
 
 # Główna funkcja analizy, która przyjmuje nazwę jeziora jako parametr
-def run_analysis(lake_name="Isąg", start_date="2019-02-02", end_date="2025-03-15"):
+def run_analysis(lake_name="Isąg", country="Poland", start_date="2019-02-02", end_date="2025-03-15"):
     start_time = time.time()
 
     # Tworzenie folderu 'static', jeśli nie istnieje
@@ -105,7 +105,8 @@ def run_analysis(lake_name="Isąg", start_date="2019-02-02", end_date="2025-03-1
 
         raise ValueError(f"Lake '{lake_name}' not found in {country}")
 
-    dam_wkt, dam_nominal = fetch_lake_polygon_wkt(lake_name)
+    # Używamy przekazanego kraju zamiast stałej wartości "Poland"
+    dam_wkt, dam_nominal = fetch_lake_polygon_wkt(lake_name, country)
 
     # -----------------------------------
     # STEP 2: Create Bounding Box
@@ -1393,9 +1394,11 @@ def run_analysis(lake_name="Isąg", start_date="2019-02-02", end_date="2025-03-1
     return {
         "success": True,
         "lake_name": lake_name,
+        "country": country,
         "execution_time": execution_time,
         "message": message
     }
+
 
 
 # Funkcja ta zostanie wywołana z pliku server.py (Flask)
@@ -1403,10 +1406,11 @@ if __name__ == "__main__":
     # Dodana obsługa argumentów z linii poleceń
     parser = argparse.ArgumentParser(description='Analiza hydrologiczna jeziora')
     parser.add_argument('--lake', type=str, default='Kisajno', help='Nazwa jeziora do analizy')
+    parser.add_argument('--country', type=str, default='Poland', help='Kraj, w którym znajduje się jezioro')
     parser.add_argument('--start_date', type=str, default='2019-02-02', help='Data początkowa analizy (YYYY-MM-DD)')
     parser.add_argument('--end_date', type=str, default='2025-03-15', help='Data końcowa analizy (YYYY-MM-DD)')
     args = parser.parse_args()
     
-    # Użyj nazwy jeziora i dat z argumentów
-    result = run_analysis(lake_name=args.lake, start_date=args.start_date, end_date=args.end_date)
+    # Użyj nazwy jeziora, kraju i dat z argumentów
+    result = run_analysis(lake_name=args.lake, country=args.country, start_date=args.start_date, end_date=args.end_date)
     print(result)

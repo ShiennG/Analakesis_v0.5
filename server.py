@@ -42,17 +42,18 @@ def serve_static(filename):
 
 @app.route('/run-analysis', methods=['POST'])
 def run_analysis():
-    """Uruchamia skrypt analizy hydrologicznej z podaną nazwą jeziora i przedziałem czasu."""
+    """Uruchamia skrypt analizy hydrologicznej z podaną nazwą jeziora, krajem i przedziałem czasu."""
     logger.info("Rozpoczęto analizę hydrologiczną")
     
     try:
-        # Pobierz nazwę jeziora i daty z żądania
+        # Pobierz nazwę jeziora, kraj i daty z żądania
         data = request.json
         lake_name = data.get('lake_name', 'Kisajno')  # Domyślnie "Kisajno" jeśli nie podano
+        country_name = data.get('country_name', 'Poland')  # Domyślnie "Poland" jeśli nie podano
         start_date = data.get('start_date', '2019-02-02')  # Domyślna data początkowa
         end_date = data.get('end_date', '2025-03-15')  # Domyślna data końcowa
         
-        logger.info(f"Analiza dla jeziora: {lake_name}, przedział czasu: {start_date} do {end_date}")
+        logger.info(f"Analiza dla jeziora: {lake_name} w kraju: {country_name}, przedział czasu: {start_date} do {end_date}")
         
         # Sprawdź, czy plik analizy istnieje
         if not os.path.exists('analiza.py'):
@@ -63,15 +64,15 @@ def run_analysis():
             }), 404
         
         # Uruchom skrypt analizy jako podproces
-        logger.info(f"Uruchamianie skryptu analiza.py dla jeziora: {lake_name}, okres: {start_date} do {end_date}")
+        logger.info(f"Uruchamianie skryptu analiza.py dla jeziora: {lake_name} w kraju: {country_name}, okres: {start_date} do {end_date}")
         start_time = time.time()
         
         # Użyj konkretnego interpretera Python, którego używasz na co dzień
         python_interpreter = sys.executable  # Używa tego samego interpretera, co aktualny skrypt
         
-        # Uruchom skrypt Pythona jako podproces, przekazując nazwę jeziora i daty jako argumenty
+        # Uruchom skrypt Pythona jako podproces, przekazując nazwę jeziora, kraj i daty jako argumenty
         result = subprocess.run(
-            [python_interpreter, 'analiza.py', '--lake', lake_name, '--start_date', start_date, '--end_date', end_date], 
+            [python_interpreter, 'analiza.py', '--lake', lake_name, '--country', country_name, '--start_date', start_date, '--end_date', end_date], 
             capture_output=True, 
             text=True
         )
@@ -103,12 +104,16 @@ def run_analysis():
             logger.warning(f"Brakujące obrazy: {', '.join(missing_images)}")
         
         # Wczytaj dynamicznie zawartość pliku extreme_water_levels_info.txt
-        with open('static/extreme_water_levels_info.txt', 'r') as file:
-            file_content1 = file.read()
-        with open('static/water_level_trend_info.txt', 'r') as file:
-            file_content2 = file.read()
-            
-        file_content = file_content1 + "<br><br>" + file_content2 
+        file_content = ""
+        try:
+            with open('static/extreme_water_levels_info.txt', 'r') as file:
+                file_content1 = file.read()
+            with open('static/water_level_trend_info.txt', 'r') as file:
+                file_content2 = file.read()
+            file_content = file_content1 + "<br><br>" + file_content2
+        except FileNotFoundError:
+            logger.warning("Nie znaleziono plików info - używam domyślnej wiadomości")
+            file_content = f"Analiza hydrologiczna dla jeziora {lake_name} w kraju {country_name} została zakończona."
 
         logger.info(f"Analiza zakończona, czas wykonania: {execution_time:.2f} sekund")
         
@@ -116,6 +121,7 @@ def run_analysis():
             'success': True,
             'execution_time': f"{execution_time:.2f}",
             'lake_name': lake_name,
+            'country_name': country_name,
             'images': [f'/static/{img}' for img in expected_images if img not in missing_images],
             'message': file_content,  # Dynamiczny tekst z pliku
             'output': result.stdout.strip()
