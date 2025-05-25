@@ -2,7 +2,7 @@
 	max-width: 100%;
 }
 
-@media {
+@media (max-width: 768px) {
 	.dark-mode-toggle, .project-info-button {
 		visibility: hidden;
 	}
