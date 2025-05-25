@@ -1,3 +1,13 @@
+* {
+	max-width: 100%;
+}
+
+@media {
+	.dark-mode-toggle, .project-info-button {
+		visibility: hidden;
+	}
+}
+
 body {
     font-family: 'Open Sans', sans-serif;
     margin: 0;
@@ -6,6 +16,7 @@ body {
     background-color: #e5e7f5;
     color: #333;
     transition: background-color 0.3s, color 0.3s;
+	max-width: 100%;
 }
 
 body.dark-mode {
@@ -24,7 +35,7 @@ body.dark-mode .project-info-content {
 }
 
 header {
-    background-color: #6969e2;
+    background-color: #3D54BA;
     color: #fff;
     padding: 6px 30px;
     text-align: center;
@@ -42,7 +53,7 @@ header {
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #6969e2;
+    background-color: #3D54BA;
     color: #fff;
     padding: 8px 16px;
     border-radius: 24px;
@@ -62,7 +73,7 @@ h1 {
 }
 
 button {
-    background-color: #6969e2;
+    background-color: #3D54BA;
     color: #fff;
     padding: 16px 32px;
     border: none;
@@ -78,7 +89,7 @@ button {
 }
 
 button:hover {
-    background-color: #8287f0;
+    background-color: #5873DD;
     transform: scale(1.05);
 }
 
@@ -124,7 +135,7 @@ body.dark-mode .result-box {
     position: fixed;
     top: 20px;
     right: 20px;
-    background-color: #6969e2;
+    background-color: #3D54BA;
     color: #fff;
     padding: 12px;
     border-radius: 50px;
@@ -142,7 +153,7 @@ body.dark-mode .result-box {
 }
 
 .dark-mode-toggle:hover {
-    background-color: #8287f0;
+    background-color: #5873DD;
     transform: scale(1.05);
     transition: transform 0.2s ease-in-out;
 }
@@ -174,7 +185,7 @@ body.dark-mode .result-box {
 }
 
 button {
-    background-color: #6969e2;
+    background-color: #3D54BA;
     color: #fff;
     padding: 16px 32px;
     border: none;
@@ -224,7 +235,7 @@ button {
     position: fixed;
     top: 10px;
     left: 20px;
-    background-color: #6969e2;
+    background-color: #3D54BA;
     color: #fff;
     padding: 12px;
     border-radius: 50px;
@@ -248,7 +259,7 @@ button {
 }
 
 .project-info-button:hover {
-    background-color: #8287f0;
+    background-color: #5873DD;
     transform: scale(1.05);
 }
 
@@ -270,7 +281,7 @@ button {
 }
 
 .project-info-header {
-    background-color: #6969e2;
+    background-color: #3D54BA;
     color: #fff;
     padding: 3px;
     border-radius: 20px 20px 0 0;
