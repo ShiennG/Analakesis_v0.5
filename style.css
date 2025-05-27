@@ -59,6 +59,7 @@ header {
     border-radius: 24px;
     font-size: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	z-index: 10;
 }
 
 .container {
@@ -428,4 +429,9 @@ button {
 	display: flex;
     flex-direction: column;
 	padding-bottom: 5px;
+}
+
+.print {
+	padding-bottom: 40px;
+	z-index: 8;
 }
