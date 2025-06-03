@@ -32,8 +32,8 @@ To set up the project locally, follow these steps:
 
 ### 1. Clone the Repository
 
-git clone [https://github.com/YourUsername/YourRepositoryName.git](https://github.com/YourUsername/YourRepositoryName.git)
-cd YourRepositoryName
+git clone [https://github.com/ShiennG/LakeSat_Analytics.git](https://github.com/ShiennG/LakeSat_Analytics.git)
+cd LakeSat_Analytics
 
 ### 2. Create a Virtual Environment (Recommended)
 ```Bash
