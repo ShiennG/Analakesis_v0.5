@@ -15,7 +15,7 @@ from eolearn.io import SentinelHubInputTask
 import osmnx as ox
 import os
 import time
-import argparse  # Dodane do obsługi argumentów z linii poleceń
+import argparse
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
@@ -32,11 +32,11 @@ config.save()
 
 
 
-# Główna funkcja analizy, która przyjmuje nazwę jeziora jako parametr
+# The main analysis function that takes the lake name as a parameter
 def run_analysis(lake_name="Isąg"):
     start_time = time.time()
 
-    # Tworzenie folderu 'static', jeśli nie istnieje
+    # Creating 'static' folder if it doesn't exist
     if not os.path.exists("static"):
         os.makedirs("static")
 
@@ -1252,8 +1252,6 @@ def run_analysis(lake_name="Isąg"):
     plot_annual_comparison(patch, "annual_comparison")
     plot_water_level_histogram(patch, "water_level_histogram")
     plot_water_level_trend(eopatch, 30, "water_level_trend", lake_name)
-
-    # v0.11 patch (added jump filter and the following plots)
     simplified_plot_seasonal_analysis(patch, "simplified_seasonal_analysis")
     modified_monthly_averages(patch, "modified_monthly_averages")
     plot_extreme_water_levels(eopatch, "extreme_water_levels", lake_name)
@@ -1267,30 +1265,30 @@ def run_analysis(lake_name="Isąg"):
     plot_rgb_w_water(patch, -1, "water_overlay_last.png")
     valid_water_levels = plot_water_levels(patch, 1.0, "water_levels.png")
 
-    # Obliczamy czas wykonania
+    # Calculating the execution time
     execution_time = round(time.time() - start_time, 2)
 
-    # Analiza wyników
+    # Results Analysis
     avg_water_level = np.nanmean(patch.scalar["WATER_LEVEL"])
-    message = f"Przeprowadzono analizę poziomu wód dla jeziora {lake_name}. "
-    message += f"Średni poziom wody w badanym okresie: {avg_water_level:.2f}. "
+    message = f"An analysis of the lake water level was carried out {lake_name}. "
+    message += f"Average water level in the given period: {avg_water_level:.2f}. "
 
-    # Sprawdzamy trendy w danych
+    # We check trends in the data
     if len(valid_water_levels) > 1:
         try:
-            # Prosty liniowy trend (jeśli mamy wystarczającą ilość danych)
+            # Simple linear trend (if we have enough data)
             from scipy import stats
             x = np.arange(len(valid_water_levels))
             slope, intercept, r_value, p_value, std_err = stats.linregress(x, valid_water_levels.flatten())
 
             if slope > 0.01:
-                message += "Wykryto trend rosnący poziomu wód."
+                message += "A rising trend in water levels has been detected."
             elif slope < -0.01:
-                message += "Wykryto trend spadkowy poziomu wód."
+                message += "A downward trend in water levels has been detected."
             else:
-                message += "Poziom wód jest stabilny w badanym okresie."
+                message += "The water level is stable in the given period."
         except:
-            message += "Nie udało się określić trendu zmian poziomu wód."
+            message += "Failed to determine the trend in water level changes."
 
     return {
         "success": True,
@@ -1300,13 +1298,13 @@ def run_analysis(lake_name="Isąg"):
     }
 
 
-# Funkcja ta zostanie wywołana z pliku server.py (Flask)
+# This function will be called from the server.py file (Flask)
 if __name__ == "__main__":
-    # Dodana obsługa argumentów z linii poleceń
-    parser = argparse.ArgumentParser(description='Analiza hydrologiczna jeziora')
-    parser.add_argument('--lake', type=str, default='Kisajno', help='Nazwa jeziora do analizy')
+    # Added support for command line arguments
+    parser = argparse.ArgumentParser(description='Hydrological analysis of the lake')
+    parser.add_argument('--lake', type=str, default='Kisajno', help='Name of the lake')
     args = parser.parse_args()
 
-    # Użyj nazwy jeziora z argumentów
+    # Use the name of the lake from the arguments
     result = run_analysis(args.lake)
     print(result)
