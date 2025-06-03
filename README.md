@@ -98,7 +98,7 @@ The server will start, usually on http://127.0.0.1:5000/.
 Open your web browser and navigate to http://127.0.0.1:5000/.
 
 ### 3. Perform an Analysis
-On the web interface, you should be able to type a lake name (e.g., "Kisajno" or "Isąg"), select country, start and end dates and then initiate the analysis. The results, including the average water level, detected trends, and generated images, will be displayed.
+On the web interface, you should be able to type a 'Lake name' (e.g., "Kisajno" or "Isąg"), select 'Country', 'Start date' and 'End date' and then initiate the analysis. The results, including the average water level, detected trends, and generated images, will be displayed.
 
 ## Project Structure
 
