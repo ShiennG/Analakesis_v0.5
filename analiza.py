@@ -24,8 +24,8 @@ from sklearn.model_selection import train_test_split
 # Set up Sentinel Hub configuration
 config = SHConfig()
 # Add your API key here - this is now properly configured
-config.sh_client_id = "03e00704-e0fd-4618-b48a-76dd796c3feb"
-config.sh_client_secret = "f4Pq5HyKURibBWPOL8wrkwCE8ylaUHVX"
+config.sh_client_id = "3ebdb8f9-3856-4ba5-bec6-9992c9a18a98"
+config.sh_client_secret = "gzBAo5Hv0oExg3Axs2GTgk24yjmCWf4h"
 
 # Very important - tell the config object that it's now properly set up
 config.save()
